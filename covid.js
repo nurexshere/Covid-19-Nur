@@ -245,7 +245,7 @@ fetch(
         type: "spline",
       },
       title: {
-        text: "Monthly Average Temperature",
+        text: "",
       },
       subtitle: {
         text:
@@ -274,7 +274,7 @@ fetch(
       },
       yAxis: {
         title: {
-          text: "Temperature",
+          text: "No: of People",
         },
         labels: {
           formatter: function () {
