@@ -2,10 +2,9 @@ var dailyWorldData = new Array();
 
 var apiUrls = [
   "https://api.covid19api.com/summary",
-  "https://api.covid19api.com/dayone/country/Ethiopia/status/confirmed/live",
   "https://api.covid19api.com/country/ethiopia",
-  "https://covid19api.herokuapp.com/confirmed",
-];
+  "https://api.covid19api.com/country/ethiopia",
+]
 
 var charts = [
   {
@@ -26,15 +25,9 @@ var charts = [
     title: "COVID-19 Cases Timeline in Ethiopia",
     type: "line",
     dateFormat: "YYYY-MM-DD",
-    startDate: "2020-01-01",
-    endDate: "2021-12-31",
+   
   },
-  {
-    url: apiUrls[3],
-    chart: "chart4",
-    title: "Global COVID-19 Cases Timeline",
-    type: "polarArea",
-  },
+  
 ];
 
 charts.forEach(function (chart) {
@@ -48,33 +41,46 @@ charts.forEach(function (chart) {
       var backgroundColors = [];
       var borderColors = [];
 
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+      
       if (chart.url === apiUrls[0]) {
-        data.Countries.forEach(function (country) {
+        shuffleArray(data.Countries);
+        data.Countries.slice(0, 10).forEach(function (country) {
           labels.push(country.Country);
           values.push(country.TotalConfirmed);
           backgroundColors.push(getRandomColor());
           borderColors.push(getRandomColor());
         });
-      } else if (chart.url === apiUrls[1]) {
+      }
+      
+      
+      
+       else if (chart.url === apiUrls[1]) {
         labels.push("Confirmed", "Recovered", "Deaths");
         values.push(data.All.confirmed, data.All.recovered, data.All.deaths);
+
         backgroundColors.push("#F44336", "#4CAF50", "#607D8B");
         borderColors.push("#F44336", "#4CAF50", "#607D8B");
       } else if (chart.url === apiUrls[2]) {
-        data.forEach(function (day) {
-          labels.push(day.Date.substr(0, 10));
-          values.push(day.Confirmed);
-          backgroundColors.push(getRandomColor());
-          borderColors.push(getRandomColor());
-        });
-      } else if (chart.url === apiUrls[3]) {
-        data.forEach(function (day) {
-          labels.push(day.date);
-          values.push(day.confirmed);
-          backgroundColors.push(getRandomColor());
-          borderColors.push(getRandomColor());
-        });
+        labels.push("Confirmed", "Recovered", "Deaths");
+        // Get data for first three months of 2021
+        values.push(
+          data.MonthlySummaries.slice(0, 3).reduce((acc, cur) => acc + cur.confirmed, 0),
+          data.MonthlySummaries.slice(0, 3).reduce((acc, cur) => acc + cur.recovered, 0),
+          data.MonthlySummaries.slice(0, 3).reduce((acc, cur) => acc + cur.deaths, 0)
+        );
+        backgroundColors.push("#F44336", "#4CAF50", "#607D8B");
+        borderColors.push("#F44336", "#4CAF50", "#607D8B");
+   
       }
+
+      
 
       var chartData = {
         labels: labels,
@@ -95,6 +101,7 @@ charts.forEach(function (chart) {
           return response.json();
         })
         .then(function (data) {
+          console.log(data)
           var labels = [];
           var values = [];
           var backgroundColors = [];
@@ -313,3 +320,23 @@ fetch(
       updateChart();
   })
   .catch((err) => console.error(err));
+
+
+  fetch('https://disease.sh/v3/covid-19/countries?sort=cases')
+  .then(response => response.json())
+  .then(data => {
+    let tableBody = document.querySelector('#covidTable tbody');
+    data.slice(0, 40).forEach(country => {
+      let row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${country.country}</td>
+        <td>${country.cases}</td>
+        <td>${country.deaths}</td>
+        <td>${country.recovered}</td>
+        <td>${country.active}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  });
+
+  
